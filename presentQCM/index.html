@@ -4,7 +4,297 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QCM fichier test CSV</title>
-  <link rel="stylesheet" href="style.css">
+  <style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* ===== Thème clair ===== */
+:root{
+  --primary:#6080bf; --primary-2:#8dcef4; --accent:#fde6bb;
+  --bg:#f5f8ff; --bg-2:#ffffff;
+  --surface:#ffffff; --surface-2:#ffffff;
+  --text:#0e1420; --muted:#5b6472;
+  --border:rgba(14,20,32,.10); --shadow:rgba(46,74,117,.18);
+  --success:#27ae60; --danger:#e74c3c;
+  --ring: color-mix(in oklab, var(--primary) 40%, transparent);
+  --ring-2: color-mix(in oklab, var(--primary-2) 40%, transparent);
+}
+/* Sombre */
+:root[data-theme="dark"]{
+  --bg:#0a0b0d; --bg-2:#0f1115;
+  --surface:rgba(22,24,29,.86); --surface-2:rgba(18,20,25,.92);
+  --text:#eef1f6; --muted:#b8bfca;
+  --border:rgba(255,255,255,.08); --shadow:rgba(0,0,0,.45);
+  --success:#41d17d; --danger:#ff6b6b;  /* plus lumineuses en sombre */
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:Poppins,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Helvetica Neue";
+  color:var(--text); line-height:1.55;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, color-mix(in oklab, var(--primary-2) 30%, transparent), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, color-mix(in oklab, var(--primary) 28%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  min-height:100dvh;
+}
+
+.app-header,.app-footer,.app{max-width:980px;margin:0 auto;padding:18px 20px}
+.app-header{display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;gap:10px;align-items:center}
+.app-header h1{margin:0;font-size:clamp(22px,3vw,30px)}
+
+.screen{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 22px 50px var(--shadow);
+  animation:screenIn .38s cubic-bezier(.22,.75,.16,1) both;
+}
+@keyframes screenIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+[hidden]{display:none!important}
+
+/* ===== Uploader / Config ===== */
+.uploader{display:grid;gap:8px;margin-top:6px}
+.uploader label{font-weight:600}
+#csvFile{
+  padding:12px 14px;border-radius:14px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);
+  transition:box-shadow .2s,border-color .2s,transform .06s;
+}
+#csvFile:focus{box-shadow:0 0 0 4px var(--ring);border-color:color-mix(in oklab,var(--primary) 35%, var(--border))}
+.hint{color:var(--muted);font-size:14px;margin:4px 0 0}
+.import-actions{margin-top:16px}
+.import-summary{margin-top:14px;color:var(--muted);font-size:14px}
+
+.final-message-card{
+  margin-top:18px;background:var(--surface);
+  border:1px solid var(--border);border-radius:18px;padding:14px;
+  box-shadow:0 16px 36px var(--shadow);
+}
+.final-message-card h3{margin:0 0 6px 0;font-size:16px}
+.final-row{display:grid;gap:8px;margin-top:12px}
+.final-label{font-weight:700}
+.final-num{width:120px;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2)}
+.final-row textarea,.final-row input[type="text"],.final-row input[type="url"]{
+  width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);
+  transition:box-shadow .2s,border-color .2s
+}
+.final-row textarea:focus,.final-row input[type="text"]:focus,.final-row input[type="url"]{
+  box-shadow:0 0 0 4px var(--ring-2);border-color:color-mix(in oklab,var(--primary-2) 40%, var(--border))
+}
+.final-inline{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Preview image config */
+.img-preview{display:grid;gap:6px;justify-items:start}
+.img-preview img{max-width:240px;max-height:170px;border-radius:12px;border:1px solid var(--border);box-shadow:0 12px 26px var(--shadow);animation:fadeIn .25s ease both}
+.img-preview-hint{color:var(--muted);font-size:12px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Bannière (masquée en reader-mode) */
+.reader-banner{
+  margin:8px 0 10px; padding:10px 12px; border-radius:12px;
+  border:1px dashed var(--border);
+  background: color-mix(in oklab, var(--primary-2) 18%, var(--bg-2));
+  color: var(--text); font-size:14px;
+}
+.reader-mode #readerBanner{ display:none !important; }
+
+/* ===== Boutons ===== */
+.btn{
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  padding:12px 16px; border-radius:14px; font-weight:700; cursor:pointer;
+  box-shadow:0 12px 26px var(--shadow);
+  transition:transform .08s, box-shadow .2s, background .2s, border-color .2s, opacity .2s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 16px 34px var(--shadow)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{
+  background:linear-gradient(180deg, color-mix(in oklab, var(--primary-2) 80%, white 20%), var(--primary));
+  color:#0b1020;border-color:transparent;
+}
+.btn.success{
+  position:relative;overflow:hidden;
+  background:linear-gradient(180deg, color-mix(in oklab, var(--success) 85%, white 15%), var(--success));
+  color:#03140a;border-color:transparent;
+}
+.btn.ghost{background:transparent;border-color:var(--border)}
+.btn:focus,#themeToggle:focus,.answer-btn:focus,#csvFile:focus,.short-answer-input:focus{outline:none;box-shadow:0 0 0 4px var(--ring)}
+
+/* ===== Header: bouton thème compact (mobile) ===== */
+#themeToggle{ width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:999px;background:var(--surface-2) }
+#themeIcon{ font-size:18px; line-height:1 }
+@media (max-width:640px){ #themeToggle{ width:38px;height:38px; box-shadow:none } }
+
+/* ===== Questions ===== */
+.question-header{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+#question-title{margin:0;font-size:clamp(18px,2.6vw,24px)}
+.progress{font-size:13px;color:var(--muted)}
+.answers{display:grid;gap:14px;margin:8px 0 16px}
+.answer-btn{
+  width:100%;text-align:left;padding:16px;border-radius:16px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-weight:600;cursor:pointer;
+  box-shadow:0 10px 24px var(--shadow);
+  transform:translateY(0); transition:transform .12s ease, box-shadow .2s, border-color .2s, background .2s;
+  font-size:16px;
+}
+.answer-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px var(--shadow)}
+.answer-btn:active{transform:translateY(0) scale(.985)}
+.answer-btn.selected{
+  outline:2px solid var(--primary);
+  background:linear-gradient(0deg, color-mix(in oklab, var(--primary) 16%, transparent), transparent), var(--surface-2);
+  border-color:var(--primary);
+}
+
+/* Champ RC */
+.short-answer-input{
+  width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-size:16px;box-shadow:0 10px 24px var(--shadow)
+}
+
+/* ===== Résultats ===== */
+#results-title{margin-top:0}
+.results-top{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:start;margin:8px 0 18px}
+.score-wrap{display:flex;justify-content:flex-start}
+.score{
+  font-size:clamp(30px,6vw,46px);font-weight:800;
+  background:linear-gradient(180deg, #fff, color-mix(in oklab, #fff 60%, var(--primary-2) 40%));
+  border:1px solid var(--border);border-radius:20px;padding:14px 20px;
+  box-shadow:0 22px 50px var(--shadow);
+  animation:pop .36s cubic-bezier(.22,.75,.16,1) both;
+}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+
+.final-card{
+  /* Centrée + lisible */
+  background:linear-gradient(180deg, #fff, color-mix(in oklab, #fff 70%, var(--primary-2) 30%));
+  border:1px solid var(--border);border-radius:18px;padding:12px;
+  box-shadow:0 18px 46px var(--shadow);
+  display:grid;gap:8px; animation:fadeIn .28s ease both;
+  justify-items:center;              /* ⬅️ centre texte + lien */
+  text-align:center;                 /* ⬅️ centre le texte */
+}
+.final-msg-text{ font-size:clamp(16px,2vw,20px); line-height:1.5; margin:0; }
+.final-msg-link{ font-weight:700; text-decoration:underline; color:var(--primary); display:inline-block; }
+.final-msg-img{ max-width:75%; height:auto; border-radius:12px; border:1px solid var(--border); box-shadow:0 12px 26px var(--shadow); display:block; margin:8px auto 0; }
+
+.results-list{display:grid;gap:14px}
+.result-question{background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:12px 14px;animation:fadeIn .25s ease both}
+.result-question h3{margin:0 0 8px 0;font-size:16px}
+.q-status-cross{color:var(--danger);font-weight:900;margin-left:6px}
+.q-status-check{color:var(--success);font-weight:900;margin-left:6px}
+.result-question ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.result-question li{list-style:disc}
+.result-question li.correct{color:var(--success);font-weight:700}
+.result-question li.wrong{color:var(--danger);font-weight:700;text-decoration:line-through}
+.result-question li.other{color:var(--text);opacity:.7;text-decoration:line-through}
+.result-question .explanation{margin-top:8px;font-size:14px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
+
+/* Sombre : contraste score & message final */
+:root[data-theme="dark"] .score{
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 85%, black 15%),
+    color-mix(in oklab, var(--surface) 70%, var(--primary) 30%)
+  );
+  color: var(--text);
+  border-color: rgba(255,255,255,.10);
+}
+:root[data-theme="dark"] .final-card{
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 90%, black 10%),
+    color-mix(in oklab, var(--surface) 75%, var(--primary-2) 25%)
+  );
+  border-color: rgba(255,255,255,.10);
+}
+:root[data-theme="dark"] .final-msg-text{ color: var(--text); }
+:root[data-theme="dark"] .final-msg-link{ color: var(--primary-2); text-decoration: underline; }
+
+/* Sombre (mobile inclus) : ✅/❌ très visibles */
+:root[data-theme="dark"] .q-status-check{ color: #4ef59b !important; text-shadow: 0 0 0 transparent; }
+:root[data-theme="dark"] .q-status-cross{ color: #ff7a7a !important; text-shadow: 0 0 0 transparent; }
+:root[data-theme="dark"] .result-question li.correct{ color: #4ef59b !important; }
+:root[data-theme="dark"] .result-question li.wrong{ color: #ff7a7a !important; }
+
+/* ===== Nav questions : Valider proche, Précédent éloigné ===== */
+.nav{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-areas:
+    "validate ."
+    ". prev";
+  gap:14px 16px;
+  margin-top:14px;
+}
+.nav-validate{ grid-area: validate; justify-self:start; }
+.nav-prev{ grid-area: prev; justify-self:end; transform: translateY(2px); }
+
+/* ===== Landing mode lecteur (hero) ===== */
+.reader-mode #screen-import{ display:grid; gap:20px; }
+.reader-hero{ display:grid; place-items:center; text-align:center; padding:12px 0 6px; }
+.reader-hero .hero-title{
+  font-size: clamp(28px, 5vw, 44px); font-weight:800; margin:4px 0 10px; letter-spacing:.2px;
+  animation: wowFade .5s ease-out both;
+}
+.reader-hero .hero-card{
+  background: linear-gradient(180deg, #fff, color-mix(in oklab, #fff 70%, var(--primary-2) 30%));
+  border:1px solid var(--border); border-radius:20px; padding:16px 22px;
+  box-shadow:0 18px 46px var(--shadow); min-width:min(560px, 92%);
+  animation: wowPop .5s .06s cubic-bezier(.22,.75,.16,1) both;
+}
+.reader-hero .hero-quiz-title{ font-size: clamp(18px, 2.6vw, 22px); font-weight:700; color:var(--text); }
+:root[data-theme="dark"] .reader-hero .hero-card{
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 92%, black 8%),
+    color-mix(in oklab, var(--surface) 78%, var(--primary-2) 22%)
+  );
+  border-color: rgba(255,255,255,.08);
+}
+:root[data-theme="dark"] .reader-hero .hero-quiz-title{ color: var(--text); }
+
+.reader-mode .import-actions{ display:flex; justify-content:center; margin-top:8px; }
+.reader-mode #btnStart{
+  font-size: clamp(18px, 2.6vw, 22px); padding:16px 28px; border-radius:16px; min-width:min(360px, 90%);
+  box-shadow: 0 0 0 0 rgba(96,128,191,.0);
+  animation: wowPop .5s .1s cubic-bezier(.22,.75,.16,1) both;
+}
+.reader-mode #btnStart:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(96,128,191,.35), 0 0 0 6px color-mix(in oklab, var(--primary) 24%, transparent);
+}
+@keyframes wowFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes wowPop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+
+/* ===== Footer & Responsive ===== */
+.app-footer{color:var(--muted);font-size:12px;text-align:center;padding-bottom:28px}
+
+@media (max-width:800px){
+  .results-top{grid-template-columns:1fr}
+  .score-wrap{justify-content:start}
+}
+@media (max-width:640px){
+  .app,.app-header,.app-footer{padding:16px}
+  .screen{padding:18px;border-radius:18px}
+
+  /* Mobile : lisibilité + touch-friendly */
+  #question-title{font-size:22px}
+  .answer-btn{font-size:18px; padding:16px 16px}
+  .short-answer-input{font-size:18px; padding:14px}
+  .btn{width:100%; font-size:16px; padding:14px 16px}
+
+  /* Nav empilée */
+  .nav{
+    grid-template-columns:1fr;
+    grid-template-areas: "validate" "prev";
+    gap:12px;
+  }
+  .nav-validate,.nav-prev{ justify-self:stretch; }
+}
+</style>
   <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
@@ -21,7 +311,7 @@
 
       <div class="uploader">
         <label for="csvFile">Fichier CSV</label>
-        <input id="csvFile" type="file" accept=".csv">
+        <input id="csvFile" type="file" accept=".csv" spellcheck="false">
         <p class="hint">Format : UTF‑8, virgules. A=type (QCM/RC), B=n°, C=question, D‑G=options, H=bonne réponse, I=explication.</p>
       </div>
 
@@ -88,7 +378,7 @@
       <!-- Actions -->
       <div class="import-actions">
         <button id="btnStart" class="btn primary">Tester le quiz</button>
-        <button id="btnShare" class="btn">Partager le quiz</button>
+        <button id="btnShare" class="btn" spellcheck="false">Partager le quiz</button>
       </div>
       <div id="importSummary" class="import-summary" aria-live="polite">10 question(s) détectée(s).</div>
     </section>
@@ -143,7 +433,7 @@
           <div class="copy-row">
             <textarea id="shareIframe" rows="3" readonly=""></textarea>
             <button id="copyIframe" class="btn">Copier</button>
-          <button id="exportHtmlBtn" class="btn">Exporter .html (autonome)</button></div>
+          <button id="exportHtmlBtn" class="btn" spellcheck="false">Exporter .html (autonome)</button></div>
 
           <p class="hint small">Si le lien est long, utilisez l’export “page autonome”.</p>
         </div>
@@ -152,12 +442,668 @@
 
   </main>
 
-  <script src="script.js"></script>
+  <script>// === ÉTAT GLOBAL ===
+let quizData = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let quizTitle = "";
+let rawCsvText = "";           // CSV original pour le partage
+let isReaderMode = false;      // mode lecteur (lien partagé ou payload embarqué)
+
+// === SÉLECTEURS ===
+const screenImport   = document.getElementById("screen-import");
+const screenQuestion = document.getElementById("screen-question");
+const screenResults  = document.getElementById("screen-results");
+
+const csvFileInput   = document.getElementById("csvFile");
+const btnStart       = document.getElementById("btnStart");
+const btnShare       = document.getElementById("btnShare");
+const btnPrev        = document.getElementById("btnPrev");
+const btnValidate    = document.getElementById("btnValidate");
+const btnRestart     = document.getElementById("btnRestart");
+
+const quizTitleEl    = document.getElementById("quizTitle");
+const importSummary  = document.getElementById("importSummary");
+
+const questionTitle  = document.getElementById("question-title");
+const progressEl     = document.getElementById("progress");
+const answersEl      = document.getElementById("answers");
+
+const finalScoreEl   = document.getElementById("finalScore");
+const resultsListEl  = document.getElementById("resultsList");
+const finalMessageCard = document.getElementById("finalMessageCard");
+
+const readerBanner   = document.getElementById("readerBanner");
+
+const htmlEl         = document.documentElement;
+const themeToggleBtn = document.getElementById("themeToggle");
+const themeIcon      = document.getElementById("themeIcon");
+
+// Modal partage
+const shareModal     = document.getElementById("shareModal");
+const shareClose     = document.getElementById("shareClose");
+const shareLinkEl    = document.getElementById("shareLink");
+const shareIframeEl  = document.getElementById("shareIframe");
+const copyLinkBtn    = document.getElementById("copyLink");
+const copyIframeBtn  = document.getElementById("copyIframe");
+
+// === UTILS ===
+const normalizeCaseOnly = (s) => (s || "").trim().toLowerCase();
+
+function guessSeparator(line) {
+  const counts = [
+    { sep: ";",  n: (line.match(/;/g)  || []).length },
+    { sep: ",",  n: (line.match(/,/g)  || []).length },
+    { sep: "\t", n: (line.match(/\t/g) || []).length },
+  ];
+  counts.sort((a,b) => b.n - a.n);
+  return counts[0].n > 0 ? counts[0].sep : ",";
+}
+
+function parseCsvLine(line, sep) {
+  const out = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (ch === sep && !inQuotes) {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+
+function normalizeImageURL(url){
+  if (!url) return url;
+  try{
+    const m = url.match(/drive\.google\.com\/file\/d\/([^/]+)/i);
+    if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+    if (url.includes("dropbox.com")) {
+      const u = new URL(url);
+      if (u.searchParams.get("dl") === "0") { u.searchParams.set("dl", "1"); return u.toString(); }
+      if (u.searchParams.get("raw") === "0") { u.searchParams.set("raw", "1"); return u.toString(); }
+    }
+  }catch(e){}
+  return url;
+}
+
+function base64urlEncode(str){
+  const b64 = btoa(unescape(encodeURIComponent(str)));
+  return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function base64urlDecode(str){
+  const b64 = str.replace(/-/g,'+').replace(/_/g,'/') + '='.repeat((4 - str.length % 4) % 4);
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+// === CONFIG message final (localStorage) ===
+const FINAL_CFG_KEY = "quiz_final_message_cfg";
+function defaultFinalConfig(){
+  return {
+    excellent: { min: 80, text: "Bravo, excellent score !", linkText: "", linkHref: "", img: "" },
+    good:      { min: 50, max: 79, text: "Beau résultat, encore un effort pour atteindre l’excellence !", linkText: "", linkHref: "", img: "" },
+    review:    { max: 49, text: "Pas grave, ça se travaille. Revois le cours et retente !", linkText: "", linkHref: "", img: "" }
+  };
+}
+function loadFinalConfig(){
+  try{
+    const raw = localStorage.getItem(FINAL_CFG_KEY);
+    if (!raw) return defaultFinalConfig();
+    const parsed = JSON.parse(raw);
+    return { ...defaultFinalConfig(), ...parsed };
+  }catch(e){ return defaultFinalConfig(); }
+}
+function saveFinalConfig(cfg){ localStorage.setItem(FINAL_CFG_KEY, JSON.stringify(cfg)); }
+
+const ui = {
+  excellentMin: document.getElementById("cfgExcellentMin"),
+  excellentText: document.getElementById("cfgExcellentText"),
+  excellentLinkText: document.getElementById("cfgExcellentLinkText"),
+  excellentLinkHref: document.getElementById("cfgExcellentLinkHref"),
+  excellentImg: document.getElementById("cfgExcellentImg"),
+  excellentImgPreviewWrap: document.getElementById("cfgExcellentImgPreviewWrap"),
+  excellentImgPreview: document.getElementById("cfgExcellentImgPreview"),
+
+  goodMin: document.getElementById("cfgGoodMin"),
+  goodMax: document.getElementById("cfgGoodMax"),
+  goodText: document.getElementById("cfgGoodText"),
+  goodLinkText: document.getElementById("cfgGoodLinkText"),
+  goodLinkHref: document.getElementById("cfgGoodLinkHref"),
+  goodImg: document.getElementById("cfgGoodImg"),
+  goodImgPreviewWrap: document.getElementById("cfgGoodImgPreviewWrap"),
+  goodImgPreview: document.getElementById("cfgGoodImgPreview"),
+
+  reviewMax: document.getElementById("cfgReviewMax"),
+  reviewText: document.getElementById("cfgReviewText"),
+  reviewLinkText: document.getElementById("cfgReviewLinkText"),
+  reviewLinkHref: document.getElementById("cfgReviewLinkHref"),
+  reviewImg: document.getElementById("cfgReviewImg"),
+  reviewImgPreviewWrap: document.getElementById("cfgReviewImgPreviewWrap"),
+  reviewImgPreview: document.getElementById("cfgReviewImgPreview"),
+
+  btnSave: document.getElementById("cfgSave"),
+  btnReset: document.getElementById("cfgReset"),
+};
+
+let finalCfg = loadFinalConfig();
+
+function hydrateFinalCfgUI(){
+  if (!ui.btnSave) return;
+  ui.excellentMin.value = finalCfg.excellent.min;
+  ui.excellentText.value = finalCfg.excellent.text;
+  ui.excellentLinkText.value = finalCfg.excellent.linkText || "";
+  ui.excellentLinkHref.value = finalCfg.excellent.linkHref || "";
+  ui.excellentImg.value = finalCfg.excellent.img || "";
+
+  ui.goodMin.value = finalCfg.good.min;
+  ui.goodMax.value = finalCfg.good.max;
+  ui.goodText.value = finalCfg.good.text;
+  ui.goodLinkText.value = finalCfg.good.linkText || "";
+  ui.goodLinkHref.value = finalCfg.good.linkHref || "";
+  ui.goodImg.value = finalCfg.good.img || "";
+
+  ui.reviewMax.value = finalCfg.review.max;
+  ui.reviewText.value = finalCfg.review.text;
+  ui.reviewLinkText.value = finalCfg.review.linkText || "";
+  ui.reviewLinkHref.value = finalCfg.review.linkHref || "";
+  ui.reviewImg.value = finalCfg.review.img || "";
+
+  updatePreview(ui.excellentImg, ui.excellentImgPreviewWrap, ui.excellentImgPreview);
+  updatePreview(ui.goodImg, ui.goodImgPreviewWrap, ui.goodImgPreview);
+  updatePreview(ui.reviewImg, ui.reviewImgPreviewWrap, ui.reviewImgPreview);
+}
+function readFinalCfgFromUI(){
+  finalCfg = {
+    excellent: {
+      min: parseInt(ui.excellentMin.value || "80", 10),
+      text: ui.excellentText.value || "",
+      linkText: ui.excellentLinkText.value || "",
+      linkHref: ui.excellentLinkHref.value || "",
+      img: ui.excellentImg.value || ""
+    },
+    good: {
+      min: parseInt(ui.goodMin.value || "50", 10),
+      max: parseInt(ui.goodMax.value || "79", 10),
+      text: ui.goodText.value || "",
+      linkText: ui.goodLinkText.value || "",
+      linkHref: ui.goodLinkHref.value || "",
+      img: ui.goodImg.value || ""
+    },
+    review: {
+      max: parseInt(ui.reviewMax.value || "49", 10),
+      text: ui.reviewText.value || "",
+      linkText: ui.reviewLinkText.value || "",
+      linkHref: ui.reviewLinkHref.value || "",
+      img: ui.reviewImg.value || ""
+    }
+  };
+}
+if (ui.btnSave && ui.btnReset) {
+  hydrateFinalCfgUI();
+  ui.btnSave.addEventListener("click", () => { readFinalCfgFromUI(); saveFinalConfig(finalCfg); alert("Message final enregistré."); });
+  ui.btnReset.addEventListener("click", () => { finalCfg = defaultFinalConfig(); hydrateFinalCfgUI(); saveFinalConfig(finalCfg); });
+  [ui.excellentImg, ui.goodImg, ui.reviewImg].forEach((el) => {
+    el.addEventListener("input", () => {
+      if (el === ui.excellentImg) updatePreview(ui.excellentImg, ui.excellentImgPreviewWrap, ui.excellentImgPreview);
+      if (el === ui.goodImg)      updatePreview(ui.goodImg, ui.goodImgPreviewWrap, ui.goodImgPreview);
+      if (el === ui.reviewImg)    updatePreview(ui.reviewImg, ui.reviewImgPreviewWrap, ui.reviewImgPreview);
+    });
+  });
+}
+function updatePreview(inputEl, wrapEl, imgEl){
+  const raw = (inputEl.value || "").trim();
+  if (!raw){ wrapEl.hidden = true; imgEl.src=""; return; }
+  const url = normalizeImageURL(raw);
+  wrapEl.hidden = false;
+  imgEl.src = url;
+  imgEl.onerror = () => { wrapEl.hidden = true; imgEl.src=""; };
+}
+
+// === IMPORT CSV ===
+csvFileInput?.addEventListener("change", handleFileImport);
+function handleFileImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  quizTitle = file.name.replace(/\.csv$/i, "");
+  quizTitleEl.textContent = quizTitle;
+
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    let text = event.target.result || "";
+    text = text.replace(/^\uFEFF/, ""); // anti‑BOM
+    rawCsvText = text;
+    parseCSV(text);
+    importSummary.textContent = `${quizData.length} question(s) détectée(s).`;
+    btnStart.disabled = quizData.length === 0;
+    btnShare.disabled  = quizData.length === 0;
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function parseCSV(text) {
+  quizData = [];
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+  if (lines.length === 0) return;
+
+  const sep = guessSeparator(lines[0]);
+  const header = parseCsvLine(lines[0], sep);
+  const headerLooksLikeHeader = header.join(" ").toLowerCase().includes("question");
+  let startIdx = headerLooksLikeHeader ? 1 : 0;
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i], sep);
+    if (cols.length < 9) continue;
+
+    const typeRaw = (cols[0] || "").replace(/\uFEFF/g,"").trim().toLowerCase();
+    const type = typeRaw === "réponse courte" ? "RC" : typeRaw.toUpperCase();
+    if (type !== "QCM" && type !== "RC") continue;
+
+    const id           = (cols[1] || "").trim();
+    const questionText = (cols[2] || "").trim();
+    const options      = (type === "QCM") ? [cols[3], cols[4], cols[5], cols[6]].map(x => (x || "").trim()).filter(Boolean) : [];
+    const correct      = (cols[7] || "").trim();
+    const comment      = (cols[8] || "").trim();
+
+    if (!questionText || !correct) continue;
+    if (type === "QCM" && options.length === 0) continue;
+
+    quizData.push({ id, type, question: questionText, options, correct, comment });
+  }
+  if (quizData.length === 0) console.warn("Aucune question reconnue. Vérifie séparateur & colonne A (QCM/RC) / BOM.");
+}
+
+// === DÉMARRAGE ===
+btnStart?.addEventListener("click", () => {
+  currentQuestionIndex = 0;
+  userAnswers = new Array(quizData.length).fill(null);
+  showQuestion();
+  screenImport.hidden = true;
+  screenQuestion.hidden = false;
+});
+
+// === AFFICHAGE QUESTION ===
+function showQuestion() {
+  const q = quizData[currentQuestionIndex];
+  questionTitle.textContent = q.question;
+  progressEl.textContent = `Question ${currentQuestionIndex + 1} sur ${quizData.length}`;
+  answersEl.innerHTML = "";
+
+  if (q.type === "QCM") {
+    q.options.forEach(option => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "answer-btn";
+      btn.textContent = option;
+      btn.addEventListener("click", () => selectAnswer(option));
+      if (userAnswers[currentQuestionIndex] === option) btn.classList.add("selected");
+      answersEl.appendChild(btn);
+    });
+  } else {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "shortAnswerInput";
+    input.className = "short-answer-input";
+    input.placeholder = "Écris ta réponse ici";
+    input.value = userAnswers[currentQuestionIndex] ?? "";
+    input.addEventListener("input", () => { userAnswers[currentQuestionIndex] = input.value; });
+    answersEl.appendChild(input);
+    setTimeout(() => input.focus(), 0);
+  }
+
+  // Ordre de tabulation : Valider (0), Précédent (1)
+  if (btnValidate) btnValidate.tabIndex = 0;
+  if (btnPrev)     btnPrev.tabIndex     = 1;
+
+  btnPrev.disabled = currentQuestionIndex === 0;
+  btnValidate.disabled = (q.type === "QCM" && !userAnswers[currentQuestionIndex]);
+}
+function selectAnswer(option) {
+  userAnswers[currentQuestionIndex] = option;
+  document.querySelectorAll(".answer-btn").forEach(btn => {
+    btn.classList.toggle("selected", btn.textContent === option);
+  });
+  btnValidate.disabled = false;
+}
+
+// === NAVIGATION ===
+btnPrev?.addEventListener("click", () => { if (currentQuestionIndex > 0) { currentQuestionIndex--; showQuestion(); } });
+btnValidate?.addEventListener("click", () => {
+  if (currentQuestionIndex < quizData.length - 1) { currentQuestionIndex++; showQuestion(); }
+  else { showResults(); }
+});
+
+// === CLAVIER : Entrée / Espace ===
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  if (!screenImport.hidden && !btnStart.disabled) { e.preventDefault(); btnStart.click(); return; }
+  if (!screenQuestion.hidden) {
+    const ae = document.activeElement;
+    if (ae?.classList?.contains("answer-btn")) { e.preventDefault(); ae.click(); return; }
+    e.preventDefault(); btnValidate.click();
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.code !== "Space" || screenQuestion.hidden) return;
+  const ae = document.activeElement;
+  if (ae?.classList?.contains("answer-btn")) { e.preventDefault(); ae.click(); }
+});
+
+// === RÉSULTATS ===
+function showResults() {
+  screenQuestion.hidden = true;
+  screenResults.hidden = false;
+
+  let score = 0;
+  resultsListEl.innerHTML = "";
+
+  quizData.forEach((q, idx) => {
+    const userAnswer = userAnswers[idx];
+    const isCorrect = normalizeCaseOnly(userAnswer) === normalizeCaseOnly(q.correct);
+    if (isCorrect) score++;
+
+    const questionBlock = document.createElement("div");
+    questionBlock.className = "result-question";
+
+    const qText = document.createElement("h3");
+    qText.textContent = q.question;
+
+    const mark = document.createElement("span");
+    mark.textContent = isCorrect ? " ✔" : " ✖";
+    mark.className = isCorrect ? "q-status-check" : "q-status-cross";
+    qText.appendChild(mark);
+    questionBlock.appendChild(qText);
+
+    if (q.type === "QCM") {
+      const ul = document.createElement("ul");
+      q.options.forEach(opt => {
+        const li = document.createElement("li");
+        li.textContent = opt;
+        const isOptionCorrect = normalizeCaseOnly(opt) === normalizeCaseOnly(q.correct);
+        const isOptionChosen  = normalizeCaseOnly(opt) === normalizeCaseOnly(userAnswer);
+        if (isOptionCorrect)      li.classList.add("correct");
+        else if (isOptionChosen)  li.classList.add("wrong");
+        else                      li.classList.add("other");
+        ul.appendChild(li);
+      });
+      questionBlock.appendChild(ul);
+    } else {
+      const pUser = document.createElement("p");
+      pUser.innerHTML = `<strong>Ta réponse :</strong> ${userAnswer ?? "—"}`;
+      pUser.className = isCorrect ? "rc-user correct" : "rc-user wrong";
+      questionBlock.appendChild(pUser);
+
+      const pCorr = document.createElement("p");
+      pCorr.innerHTML = `<strong>Bonne réponse :</strong> ${q.correct}`;
+      pCorr.className = "rc-correct";
+      questionBlock.appendChild(pCorr);
+    }
+
+    if (q.comment) {
+      const exp = document.createElement("p");
+      exp.className = "explanation";
+      exp.textContent = q.comment;
+      questionBlock.appendChild(exp);
+    }
+
+    resultsListEl.appendChild(questionBlock);
+  });
+
+  finalScoreEl.textContent = `${score} / ${quizData.length}`;
+  renderFinalMessage(score, quizData.length);
+}
+
+// Message final (sans titre)
+function renderFinalMessage(score, total){
+  const pct = total ? Math.round((score / total) * 100) : 0;
+  if (!finalMessageCard) return;
+  finalMessageCard.innerHTML = "";
+
+  let selected;
+  if (pct >= (finalCfg.excellent.min ?? 80)) selected = finalCfg.excellent;
+  else if (pct >= (finalCfg.good.min ?? 50) && pct <= (finalCfg.good.max ?? 79)) selected = finalCfg.good;
+  else selected = finalCfg.review;
+
+  if (!selected) return;
+
+  if (selected.text) {
+    const p = document.createElement("p");
+    p.className = "final-msg-text";
+    p.textContent = selected.text.replace("{score}", `${score}/${total}`).replace("{percent}", `${pct}%`);
+    finalMessageCard.appendChild(p);
+  }
+  if (selected.linkHref && selected.linkText) {
+    const a = document.createElement("a");
+    a.className = "final-msg-link";
+    a.href = selected.linkHref;
+    a.target = "blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = selected.linkText;
+    finalMessageCard.appendChild(a);
+  }
+  if (selected.img) {
+    const img = document.createElement("img");
+    img.className = "final-msg-img";
+    img.src = normalizeImageURL(selected.img);
+    img.alt = "Illustration";
+    img.loading = "lazy";
+    img.onerror = () => img.remove();
+    finalMessageCard.appendChild(img);
+  }
+}
+
+// === RECOMMENCER ===
+btnRestart?.addEventListener("click", () => {
+  screenResults.hidden = true;
+  screenImport.hidden  = false;
+
+  const titleEl = document.getElementById("import-title");
+  if (isReaderMode) {
+    if (titleEl) titleEl.textContent = "Bienvenue";
+    btnStart.disabled = false;
+    document.querySelector(".uploader")?.setAttribute("hidden","true");
+    document.querySelector(".final-message-card")?.setAttribute("hidden","true");
+    if (btnShare) btnShare.hidden = true;
+    if (readerBanner) readerBanner.hidden = true;
+    enterReaderLanding();
+  } else {
+    if (titleEl) titleEl.textContent = "Prêt à jouer ?";
+    document.querySelector(".uploader")?.removeAttribute("hidden");
+    document.querySelector(".final-message-card")?.removeAttribute("hidden");
+    if (btnShare) btnShare.hidden = false;
+    if (readerBanner) readerBanner.hidden = true;
+    importSummary.textContent = `${quizData.length} question(s) • ${quizTitle || "Mon quiz"}`;
+    btnStart.textContent = "Rejouer le quiz";
+    btnStart.disabled = false;
+  }
+});
+
+// === THÈME ===
+(function initTheme(){
+  const saved = localStorage.getItem("quiz_theme");
+  htmlEl.setAttribute("data-theme", saved || "light");
+  syncThemeIcon();
+})();
+function toggleTheme(){
+  const current = htmlEl.getAttribute("data-theme") || "light";
+  const next = current === "light" ? "dark" : "light";
+  htmlEl.setAttribute("data-theme", next);
+  localStorage.setItem("quiz_theme", next);
+  syncThemeIcon();
+}
+function syncThemeIcon(){
+  const mode = htmlEl.getAttribute("data-theme");
+  themeIcon.textContent = mode === "light" ? "☀️" : "🌙";
+}
+themeToggleBtn?.addEventListener("click", toggleTheme);
+
+// === PARTAGE ===
+function buildPayload(){ return { t: quizTitle || "Mon quiz", csv: rawCsvText, cfg: finalCfg, v: 1 }; }
+
+btnShare?.addEventListener("click", async () => {
+  const payload = buildPayload();
+  const encoded = base64urlEncode(JSON.stringify(payload));
+  const base = window.location.origin + window.location.pathname;
+  const url  = `${base}#q=${encoded}`;
+
+  shareLinkEl.value   = url;
+  shareIframeEl.value = `<iframe src="${url}" width="100%" height="640" style="border:0;" allow="clipboard-write; web-share"></iframe>`;
+
+  if (!document.getElementById("exportHtmlBtn")) {
+    const exportBtn = document.createElement("button");
+    exportBtn.id = "exportHtmlBtn";
+    exportBtn.className = "btn";
+    exportBtn.textContent = "Exporter .html (autonome)";
+    shareIframeEl.parentElement.appendChild(exportBtn);
+    exportBtn.addEventListener("click", async () => { await exportStandaloneHTML(encoded); });
+  }
+  shareModal.hidden = false;
+});
+shareClose?.addEventListener("click", () => shareModal.hidden = true);
+copyLinkBtn?.addEventListener("click",  () => { shareLinkEl.select(); document.execCommand('copy'); copyLinkBtn.textContent="Copié !"; setTimeout(()=>copyLinkBtn.textContent="Copier",1000); });
+copyIframeBtn?.addEventListener("click",()=> { shareIframeEl.select(); document.execCommand('copy'); copyIframeBtn.textContent="Copié !"; setTimeout(()=>copyIframeBtn.textContent="Copier",1000); });
+
+// === LECTURE via lien (#q=...) OU payload embarqué ===
+window.addEventListener("DOMContentLoaded", () => {
+  let ok = false;
+
+  // 1) Ancien format #q=...
+  const m = (window.location.hash || "").match(/#q=([^&]+)/);
+  if (m) {
+    try {
+      const data = JSON.parse(base64urlDecode(m[1]));
+      applyReaderPayload(data);
+      ok = true;
+    } catch(e) { console.error("Lien invalide", e); }
+  }
+
+  // 2) Payload embarqué (page autonome)
+  if (!ok) {
+    const el = document.getElementById("__QUIZ_PAYLOAD__");
+    if (el) {
+      try { const data = JSON.parse(el.textContent || "{}"); applyReaderPayload(data); ok = true; }
+      catch(e){ console.error("Payload embarqué invalide", e); }
+    }
+  }
+
+  // 3) Fallback formateur
+  if (!ok) {
+    document.querySelector(".uploader")?.removeAttribute("hidden");
+    document.querySelector(".final-message-card")?.removeAttribute("hidden");
+    if (readerBanner) readerBanner.hidden = true;
+    if (btnShare) btnShare.hidden = false;
+    btnStart.textContent = "Tester le quiz";
+    btnStart.disabled = true;
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+});
+
+function applyReaderPayload(data){
+  quizTitle = data.t || "Mon quiz";
+  quizTitleEl.textContent = quizTitle;
+
+  finalCfg = data.cfg ? { ...defaultFinalConfig(), ...data.cfg } : defaultFinalConfig();
+  if (typeof hydrateFinalCfgUI === "function") hydrateFinalCfgUI();
+
+  rawCsvText = (data.csv || "").replace(/^\uFEFF/, "");
+  parseCSV(rawCsvText);
+
+  isReaderMode = true;
+  screenImport.hidden = false;
+  const title = document.getElementById("import-title");
+  if (title) title.textContent = "Bienvenue";
+  importSummary.textContent = `${quizData.length} question(s) • ${quizTitle}`;
+  document.querySelector(".uploader")?.setAttribute("hidden","true");
+  document.querySelector(".final-message-card")?.setAttribute("hidden","true");
+  btnStart.textContent = "Démarrer";
+  btnStart.disabled = quizData.length === 0;
+  if (btnShare) btnShare.hidden = true;
+  if (readerBanner) readerBanner.hidden = true;
+  enterReaderLanding();
+}
+
+// === Landing mode lecteur (hero) ===
+function ensureReaderHero(){
+  let hero = document.getElementById("readerLanding");
+  if (!hero) {
+    hero = document.createElement("div");
+    hero.id = "readerLanding";
+    hero.className = "reader-hero";
+    hero.innerHTML = `
+      <div class="hero-title">Prêt à jouer&nbsp;?</div>
+      <div class="hero-card">
+        <div id="heroQuizTitle" class="hero-quiz-title"></div>
+      </div>
+    `;
+    const importTitle = document.getElementById("import-title");
+    importTitle?.insertAdjacentElement("afterend", hero);
+  }
+  const t = document.getElementById("heroQuizTitle");
+  if (t) t.textContent = quizTitle || "Mon quiz";
+}
+function enterReaderLanding(){
+  document.body.classList.add("reader-mode");
+  ensureReaderHero();
+  importSummary.textContent = "";
+  btnStart.textContent = "Démarrer";
+  btnStart.disabled = false;
+}
+
+// === Export .html autonome (payload embarqué) ===
+async function exportStandaloneHTML(encodedPayload){
+  let cssText = "", jsText = "";
+  try{
+    const link = document.querySelector('link[rel="stylesheet"]');
+    const scriptTag = [...document.scripts].find(s => s.src && /script\.js(\?|$)/.test(s.src));
+    if (link?.href)     { const res  = await fetch(link.href, { cache:"no-store" }); cssText = await res.text(); }
+    if (scriptTag?.src) { const res2 = await fetch(scriptTag.src, { cache:"no-store" }); jsText  = await res2.text(); }
+  }catch(e){ console.warn("Inlining CSS/JS impossible. Fallback liens externes.", e); }
+
+  const payloadJSON = JSON.stringify({ t: quizTitle || "Mon quiz", csv: rawCsvText, cfg: finalCfg, v: 1 });
+  const title = (quizTitle || "Quiz").replace(/[<>]/g,"");
+
+  const html = `<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${title}</title>
+  ${cssText ? `<style>${cssText}</style>` : `<link rel="stylesheet" href="style.css">`}
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+  ${document.querySelector('main.app')?.outerHTML || '<main id="app"></main>'}
+
+  ${jsText ? `<script>${jsText}</script>` : `<script src="script.js"></script>`}
 
   <!-- Payload embarqué : lu par script.js même sans hash -->
-  <script id="__QUIZ_PAYLOAD__" type="application/json">{"t":"QCM fichier test CSV","csv":"Type de question;Type de question;Texte de la question;Proposition 1;Proposition 2;Proposition 3 (facultatif);Proposition 4 (facultatif);Bonne réponse (texte EXACT hors majuscules);Explication ou rappel de la règle (facultatif);Mots-clés  séparés par des virgules (facultatif);Niveau de difficulté (facile, moyen, difficile) facultatif;Lien vers une image ou un son (facultatif)\r\nQCM;1;Elle… son camp.;choisit;choisi;choisie;;choisit;\"\"\"choisir\"\", ni l'un ni l'autre, catégorie jaune\";;facile;\r\nQCM;2;Les témoins… le registre.;signes;signent;;;signent;\"sujet \"\"les témoins\"\" : ent\";;facile;\r\nQCM;3;Je… bien le problème.;comprend;comprends;;;comprends;\"verbe \"\"comprendre\"\", catégorie verte : ds, ds, d\";;facile;\r\nQCM;4;Ce produit… beaucoup.;pollut;pollue;;;pollue;\"verbe \"\"polluer\"\", e, es, e\";;facile;\r\nQCM;5;Je te… ses coordonées.;donne;donnes;;;donne;\"sujet \"\"je\"\" \";;facile;\r\nQCM;6;Lola me… les documents nécessaires.;fournit;fournie;fournis;;fournit;fournir, jaune, s, s, t;;facile;\r\nQCM;7;\"Une mention \"\"très bien\"\"… un bel avenir.\";garantie;garantis;garantit;;garantit;garantir, jaune, s, s, t (attention à ne pas confondre avec la garantie de Darty);;facile;\r\nQCM;8;Vous nous… merci.;dîtes;dites;;;dites;\"dites (comme \"\"faites\"\", sans accent)\";;facile;\r\nQCM;9;Paul te… le dossier par e-mail.;renvois;renvoies;renvoie;renvoit;renvoie;renvoyer, -er, e, es, e;;facile;\r\nQCM;10;Je… le dernier paragraphe.;relie;relis;relit;reli;relis;relire, jaune, s, s, t;;moyen;","cfg":{"excellent":{"min":80,"text":"Bravo, excellent score !","linkText":"Regarde le cerf","linkHref":"https://www.highlandsafaris.net/blog/images/deer-header.jpg","img":"https://www.highlandsafaris.net/blog/images/deer-header.jpg"},"good":{"min":50,"max":79,"text":"Beau résultat, encore un effort pour atteindre l’excellence !","linkText":"","linkHref":"","img":""},"review":{"max":49,"text":"Pas grave, ça se travaille. Revois le cours et retente !","linkText":"","linkHref":"","img":""}},"v":1}</script>
+  <script id="__QUIZ_PAYLOAD__" type="application/json">${payloadJSON.replace(/<\/script>/gi,"<\\/script>")}</script>
 
   <!-- Optionnel : garder un hash pour rétro-compatibilité -->
-  <script>(function(){var e='eyJ0IjoiUUNNIGZpY2hpZXIgdGVzdCBDU1YiLCJjc3YiOiJUeXBlIGRlIHF1ZXN0aW9uO1R5cGUgZGUgcXVlc3Rpb247VGV4dGUgZGUgbGEgcXVlc3Rpb247UHJvcG9zaXRpb24gMTtQcm9wb3NpdGlvbiAyO1Byb3Bvc2l0aW9uIDMgKGZhY3VsdGF0aWYpO1Byb3Bvc2l0aW9uIDQgKGZhY3VsdGF0aWYpO0Jvbm5lIHLDqXBvbnNlICh0ZXh0ZSBFWEFDVCBob3JzIG1hanVzY3VsZXMpO0V4cGxpY2F0aW9uIG91IHJhcHBlbCBkZSBsYSByw6hnbGUgKGZhY3VsdGF0aWYpO01vdHMtY2zDqXMgIHPDqXBhcsOpcyBwYXIgZGVzIHZpcmd1bGVzIChmYWN1bHRhdGlmKTtOaXZlYXUgZGUgZGlmZmljdWx0w6kgKGZhY2lsZSwgbW95ZW4sIGRpZmZpY2lsZSkgZmFjdWx0YXRpZjtMaWVuIHZlcnMgdW5lIGltYWdlIG91IHVuIHNvbiAoZmFjdWx0YXRpZilcclxuUUNNOzE7RWxsZeKApiBzb24gY2FtcC47Y2hvaXNpdDtjaG9pc2k7Y2hvaXNpZTs7Y2hvaXNpdDtcIlwiXCJjaG9pc2lyXCJcIiwgbmkgbCd1biBuaSBsJ2F1dHJlLCBjYXTDqWdvcmllIGphdW5lXCI7O2ZhY2lsZTtcclxuUUNNOzI7TGVzIHTDqW1vaW5z4oCmIGxlIHJlZ2lzdHJlLjtzaWduZXM7c2lnbmVudDs7O3NpZ25lbnQ7XCJzdWpldCBcIlwibGVzIHTDqW1vaW5zXCJcIiA6IGVudFwiOztmYWNpbGU7XHJcblFDTTszO0pl4oCmIGJpZW4gbGUgcHJvYmzDqG1lLjtjb21wcmVuZDtjb21wcmVuZHM7Oztjb21wcmVuZHM7XCJ2ZXJiZSBcIlwiY29tcHJlbmRyZVwiXCIsIGNhdMOpZ29yaWUgdmVydGUgOiBkcywgZHMsIGRcIjs7ZmFjaWxlO1xyXG5RQ007NDtDZSBwcm9kdWl04oCmIGJlYXVjb3VwLjtwb2xsdXQ7cG9sbHVlOzs7cG9sbHVlO1widmVyYmUgXCJcInBvbGx1ZXJcIlwiLCBlLCBlcywgZVwiOztmYWNpbGU7XHJcblFDTTs1O0plIHRl4oCmIHNlcyBjb29yZG9uw6llcy47ZG9ubmU7ZG9ubmVzOzs7ZG9ubmU7XCJzdWpldCBcIlwiamVcIlwiIFwiOztmYWNpbGU7XHJcblFDTTs2O0xvbGEgbWXigKYgbGVzIGRvY3VtZW50cyBuw6ljZXNzYWlyZXMuO2ZvdXJuaXQ7Zm91cm5pZTtmb3VybmlzOztmb3Vybml0O2ZvdXJuaXIsIGphdW5lLCBzLCBzLCB0OztmYWNpbGU7XHJcblFDTTs3O1wiVW5lIG1lbnRpb24gXCJcInRyw6hzIGJpZW5cIlwi4oCmIHVuIGJlbCBhdmVuaXIuXCI7Z2FyYW50aWU7Z2FyYW50aXM7Z2FyYW50aXQ7O2dhcmFudGl0O2dhcmFudGlyLCBqYXVuZSwgcywgcywgdCAoYXR0ZW50aW9uIMOgIG5lIHBhcyBjb25mb25kcmUgYXZlYyBsYSBnYXJhbnRpZSBkZSBEYXJ0eSk7O2ZhY2lsZTtcclxuUUNNOzg7Vm91cyBub3Vz4oCmIG1lcmNpLjtkw650ZXM7ZGl0ZXM7OztkaXRlcztcImRpdGVzIChjb21tZSBcIlwiZmFpdGVzXCJcIiwgc2FucyBhY2NlbnQpXCI7O2ZhY2lsZTtcclxuUUNNOzk7UGF1bCB0ZeKApiBsZSBkb3NzaWVyIHBhciBlLW1haWwuO3JlbnZvaXM7cmVudm9pZXM7cmVudm9pZTtyZW52b2l0O3JlbnZvaWU7cmVudm95ZXIsIC1lciwgZSwgZXMsIGU7O2ZhY2lsZTtcclxuUUNNOzEwO0pl4oCmIGxlIGRlcm5pZXIgcGFyYWdyYXBoZS47cmVsaWU7cmVsaXM7cmVsaXQ7cmVsaTtyZWxpcztyZWxpcmUsIGphdW5lLCBzLCBzLCB0Ozttb3llbjsiLCJjZmciOnsiZXhjZWxsZW50Ijp7Im1pbiI6ODAsInRleHQiOiJCcmF2bywgZXhjZWxsZW50IHNjb3JlICEiLCJsaW5rVGV4dCI6IlJlZ2FyZGUgbGUgY2VyZiIsImxpbmtIcmVmIjoiaHR0cHM6Ly93d3cuaGlnaGxhbmRzYWZhcmlzLm5ldC9ibG9nL2ltYWdlcy9kZWVyLWhlYWRlci5qcGciLCJpbWciOiJodHRwczovL3d3dy5oaWdobGFuZHNhZmFyaXMubmV0L2Jsb2cvaW1hZ2VzL2RlZXItaGVhZGVyLmpwZyJ9LCJnb29kIjp7Im1pbiI6NTAsIm1heCI6NzksInRleHQiOiJCZWF1IHLDqXN1bHRhdCwgZW5jb3JlIHVuIGVmZm9ydCBwb3VyIGF0dGVpbmRyZSBs4oCZZXhjZWxsZW5jZSAhIiwibGlua1RleHQiOiIiLCJsaW5rSHJlZiI6IiIsImltZyI6IiJ9LCJyZXZpZXciOnsibWF4Ijo0OSwidGV4dCI6IlBhcyBncmF2ZSwgw6dhIHNlIHRyYXZhaWxsZS4gUmV2b2lzIGxlIGNvdXJzIGV0IHJldGVudGUgISIsImxpbmtUZXh0IjoiIiwibGlua0hyZWYiOiIiLCJpbWciOiIifX0sInYiOjF9';if(!location.hash||!location.hash.includes('#q=')){location.hash='#q='+e;}})();</script>
+  <script>(function(){var e='${encodedPayload}';if(!location.hash||!location.hash.includes('#q=')){location.hash='#q='+e;}})();</script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${(title||"quiz").toLowerCase().replace(/\s+/g,'-')}.html`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+</script>
+
+  <!-- Payload embarqué : lu par script.js même sans hash -->
+  <script id="__QUIZ_PAYLOAD__" type="application/json">{"t":"QCM fichier test CSV","csv":"Type de question;Type de question;Texte de la question;Proposition 1;Proposition 2;Proposition 3 (facultatif);Proposition 4 (facultatif);Bonne réponse (texte EXACT hors majuscules);Explication ou rappel de la règle (facultatif);Mots-clés  séparés par des virgules (facultatif);Niveau de difficulté (facile, moyen, difficile) facultatif;Lien vers une image ou un son (facultatif)\r\nQCM;1;Elle… son camp.;choisit;choisi;choisie;;choisit;\"\"\"choisir\"\", ni l'un ni l'autre, catégorie jaune\";;facile;\r\nQCM;2;Les témoins… le registre.;signes;signent;;;signent;\"sujet \"\"les témoins\"\" : ent\";;facile;\r\nQCM;3;Je… bien le problème.;comprend;comprends;;;comprends;\"verbe \"\"comprendre\"\", catégorie verte : ds, ds, d\";;facile;\r\nQCM;4;Ce produit… beaucoup.;pollut;pollue;;;pollue;\"verbe \"\"polluer\"\", e, es, e\";;facile;\r\nQCM;5;Je te… ses coordonées.;donne;donnes;;;donne;\"sujet \"\"je\"\" \";;facile;\r\nQCM;6;Lola me… les documents nécessaires.;fournit;fournie;fournis;;fournit;fournir, jaune, s, s, t;;facile;\r\nQCM;7;\"Une mention \"\"très bien\"\"… un bel avenir.\";garantie;garantis;garantit;;garantit;garantir, jaune, s, s, t (attention à ne pas confondre avec la garantie de Darty);;facile;\r\nQCM;8;Vous nous… merci.;dîtes;dites;;;dites;\"dites (comme \"\"faites\"\", sans accent)\";;facile;\r\nQCM;9;Paul te… le dossier par e-mail.;renvois;renvoies;renvoie;renvoit;renvoie;renvoyer, -er, e, es, e;;facile;\r\nQCM;10;Je… le dernier paragraphe.;relie;relis;relit;reli;relis;relire, jaune, s, s, t;;moyen;","cfg":{"excellent":{"min":80,"text":"Bravo, excellent score !","linkText":"regardez le lion","linkHref":"https://www.highlandsafaris.net/blog/10-fun-facts-about-red-deer.php","img":"https://www.highlandsafaris.net/blog/images/deer-header.jpg"},"good":{"min":50,"max":79,"text":"Beau résultat, encore un effort pour atteindre l’excellence !","linkText":"","linkHref":"","img":""},"review":{"max":49,"text":"Pas grave, ça se travaille. Revois le cours et retente !","linkText":"","linkHref":"","img":""}},"v":1}</script>
+
+  <!-- Optionnel : garder un hash pour rétro-compatibilité -->
+  <script>(function(){var e='eyJ0IjoiUUNNIGZpY2hpZXIgdGVzdCBDU1YiLCJjc3YiOiJUeXBlIGRlIHF1ZXN0aW9uO1R5cGUgZGUgcXVlc3Rpb247VGV4dGUgZGUgbGEgcXVlc3Rpb247UHJvcG9zaXRpb24gMTtQcm9wb3NpdGlvbiAyO1Byb3Bvc2l0aW9uIDMgKGZhY3VsdGF0aWYpO1Byb3Bvc2l0aW9uIDQgKGZhY3VsdGF0aWYpO0Jvbm5lIHLDqXBvbnNlICh0ZXh0ZSBFWEFDVCBob3JzIG1hanVzY3VsZXMpO0V4cGxpY2F0aW9uIG91IHJhcHBlbCBkZSBsYSByw6hnbGUgKGZhY3VsdGF0aWYpO01vdHMtY2zDqXMgIHPDqXBhcsOpcyBwYXIgZGVzIHZpcmd1bGVzIChmYWN1bHRhdGlmKTtOaXZlYXUgZGUgZGlmZmljdWx0w6kgKGZhY2lsZSwgbW95ZW4sIGRpZmZpY2lsZSkgZmFjdWx0YXRpZjtMaWVuIHZlcnMgdW5lIGltYWdlIG91IHVuIHNvbiAoZmFjdWx0YXRpZilcclxuUUNNOzE7RWxsZeKApiBzb24gY2FtcC47Y2hvaXNpdDtjaG9pc2k7Y2hvaXNpZTs7Y2hvaXNpdDtcIlwiXCJjaG9pc2lyXCJcIiwgbmkgbCd1biBuaSBsJ2F1dHJlLCBjYXTDqWdvcmllIGphdW5lXCI7O2ZhY2lsZTtcclxuUUNNOzI7TGVzIHTDqW1vaW5z4oCmIGxlIHJlZ2lzdHJlLjtzaWduZXM7c2lnbmVudDs7O3NpZ25lbnQ7XCJzdWpldCBcIlwibGVzIHTDqW1vaW5zXCJcIiA6IGVudFwiOztmYWNpbGU7XHJcblFDTTszO0pl4oCmIGJpZW4gbGUgcHJvYmzDqG1lLjtjb21wcmVuZDtjb21wcmVuZHM7Oztjb21wcmVuZHM7XCJ2ZXJiZSBcIlwiY29tcHJlbmRyZVwiXCIsIGNhdMOpZ29yaWUgdmVydGUgOiBkcywgZHMsIGRcIjs7ZmFjaWxlO1xyXG5RQ007NDtDZSBwcm9kdWl04oCmIGJlYXVjb3VwLjtwb2xsdXQ7cG9sbHVlOzs7cG9sbHVlO1widmVyYmUgXCJcInBvbGx1ZXJcIlwiLCBlLCBlcywgZVwiOztmYWNpbGU7XHJcblFDTTs1O0plIHRl4oCmIHNlcyBjb29yZG9uw6llcy47ZG9ubmU7ZG9ubmVzOzs7ZG9ubmU7XCJzdWpldCBcIlwiamVcIlwiIFwiOztmYWNpbGU7XHJcblFDTTs2O0xvbGEgbWXigKYgbGVzIGRvY3VtZW50cyBuw6ljZXNzYWlyZXMuO2ZvdXJuaXQ7Zm91cm5pZTtmb3VybmlzOztmb3Vybml0O2ZvdXJuaXIsIGphdW5lLCBzLCBzLCB0OztmYWNpbGU7XHJcblFDTTs3O1wiVW5lIG1lbnRpb24gXCJcInRyw6hzIGJpZW5cIlwi4oCmIHVuIGJlbCBhdmVuaXIuXCI7Z2FyYW50aWU7Z2FyYW50aXM7Z2FyYW50aXQ7O2dhcmFudGl0O2dhcmFudGlyLCBqYXVuZSwgcywgcywgdCAoYXR0ZW50aW9uIMOgIG5lIHBhcyBjb25mb25kcmUgYXZlYyBsYSBnYXJhbnRpZSBkZSBEYXJ0eSk7O2ZhY2lsZTtcclxuUUNNOzg7Vm91cyBub3Vz4oCmIG1lcmNpLjtkw650ZXM7ZGl0ZXM7OztkaXRlcztcImRpdGVzIChjb21tZSBcIlwiZmFpdGVzXCJcIiwgc2FucyBhY2NlbnQpXCI7O2ZhY2lsZTtcclxuUUNNOzk7UGF1bCB0ZeKApiBsZSBkb3NzaWVyIHBhciBlLW1haWwuO3JlbnZvaXM7cmVudm9pZXM7cmVudm9pZTtyZW52b2l0O3JlbnZvaWU7cmVudm95ZXIsIC1lciwgZSwgZXMsIGU7O2ZhY2lsZTtcclxuUUNNOzEwO0pl4oCmIGxlIGRlcm5pZXIgcGFyYWdyYXBoZS47cmVsaWU7cmVsaXM7cmVsaXQ7cmVsaTtyZWxpcztyZWxpcmUsIGphdW5lLCBzLCBzLCB0Ozttb3llbjsiLCJjZmciOnsiZXhjZWxsZW50Ijp7Im1pbiI6ODAsInRleHQiOiJCcmF2bywgZXhjZWxsZW50IHNjb3JlICEiLCJsaW5rVGV4dCI6InJlZ2FyZGV6IGxlIGxpb24iLCJsaW5rSHJlZiI6Imh0dHBzOi8vd3d3LmhpZ2hsYW5kc2FmYXJpcy5uZXQvYmxvZy8xMC1mdW4tZmFjdHMtYWJvdXQtcmVkLWRlZXIucGhwIiwiaW1nIjoiaHR0cHM6Ly93d3cuaGlnaGxhbmRzYWZhcmlzLm5ldC9ibG9nL2ltYWdlcy9kZWVyLWhlYWRlci5qcGcifSwiZ29vZCI6eyJtaW4iOjUwLCJtYXgiOjc5LCJ0ZXh0IjoiQmVhdSByw6lzdWx0YXQsIGVuY29yZSB1biBlZmZvcnQgcG91ciBhdHRlaW5kcmUgbOKAmWV4Y2VsbGVuY2UgISIsImxpbmtUZXh0IjoiIiwibGlua0hyZWYiOiIiLCJpbWciOiIifSwicmV2aWV3Ijp7Im1heCI6NDksInRleHQiOiJQYXMgZ3JhdmUsIMOnYSBzZSB0cmF2YWlsbGUuIFJldm9pcyBsZSBjb3VycyBldCByZXRlbnRlICEiLCJsaW5rVGV4dCI6IiIsImxpbmtIcmVmIjoiIiwiaW1nIjoiIn19LCJ2IjoxfQ';if(!location.hash||!location.hash.includes('#q=')){location.hash='#q='+e;}})();</script>
 </body>
 </html>
